@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1116">
+<title>Smart Parking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116; --panel:#171b22; --panel-2:#1e232c; --line:#2a313c;
+    --text:#eef1f5; --muted:#8b95a5;
+    --free:#2fbf71; --free-dim:#1c4a33;
+    --taken:#e5534b; --taken-dim:#4d2523;
+    --warn:#f0a83a; --unknown:#3a414c;
+    --accent:#4c8dff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;color:var(--text);min-height:100vh;
+       padding:16px 16px calc(110px + env(safe-area-inset-bottom))}
+  .wrap{max-width:560px;margin:0 auto}
+
+  /* ---------- ส่วนหัว ---------- */
+  header{display:flex;align-items:center;justify-content:space-between;margin:4px 0 18px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:38px;height:38px;border-radius:10px;background:var(--accent);display:grid;place-items:center;
+        font-weight:700;font-size:22px;color:#fff}
+  .brand h1{font-size:19px;font-weight:700;line-height:1.1}
+  .brand small{display:block;color:var(--muted);font-size:13px;font-weight:400}
+  .live{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .live i{width:8px;height:8px;border-radius:50%;background:var(--free);box-shadow:0 0 0 0 rgba(47,191,113,.6);
+          animation:pulse 2s infinite}
+  .live.off i{background:var(--taken);animation:none}
+  @keyframes pulse{70%{box-shadow:0 0 0 7px rgba(47,191,113,0)}100%{box-shadow:0 0 0 0 rgba(47,191,113,0)}}
+
+  /* ---------- สรุปรวม ---------- */
+  .summary{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:14px}
+  .summary .label{color:var(--muted);font-size:14px}
+  .summary .big{display:flex;align-items:baseline;gap:8px;margin:2px 0 12px}
+  .summary .big b{font-size:44px;font-weight:700;color:var(--free);line-height:1}
+  .summary .big span{color:var(--muted);font-size:16px}
+  .bar{height:8px;background:var(--taken-dim);border-radius:99px;overflow:hidden}
+  .bar > div{height:100%;background:var(--free);border-radius:99px;transition:width .5s}
+
+  /* ---------- คำแนะนำ ---------- */
+  .hint{display:flex;gap:10px;align-items:center;background:rgba(76,141,255,.12);border:1px solid rgba(76,141,255,.35);
+        color:#cfe0ff;border-radius:14px;padding:12px 14px;font-size:15px;font-weight:500;margin-bottom:16px}
+  .hint svg{flex:none}
+
+  /* ---------- การ์ดชั้น ---------- */
+  .floors{display:flex;flex-direction:column;gap:12px}
+  .floor{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:16px;cursor:pointer;
+         transition:border-color .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+  .floor:active{transform:scale(.99)}
+  .floor.selected{border-color:var(--accent);background:var(--panel-2)}
+  .floor.disabled{cursor:not-allowed;opacity:.55}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .fname{display:flex;align-items:center;gap:10px}
+  .badge{width:42px;height:42px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line);
+         display:grid;place-items:center;font-weight:700;font-size:18px}
+  .floor.selected .badge{background:var(--accent);border-color:var(--accent)}
+  .fname h2{font-size:18px;font-weight:600}
+  .status{font-size:13px;font-weight:600;padding:2px 9px;border-radius:99px;display:inline-block;margin-top:2px}
+  .s-free{background:var(--free-dim);color:var(--free)}
+  .s-low{background:rgba(240,168,58,.15);color:var(--warn)}
+  .s-full{background:var(--taken-dim);color:var(--taken)}
+  .s-none{background:var(--unknown);color:var(--muted)}
+  .count{text-align:right}
+  .count b{font-size:30px;font-weight:700;line-height:1}
+  .count span{color:var(--muted);font-size:14px}
+  .count small{display:block;color:var(--muted);font-size:12px}
+
+  .slots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px}
+  .slot{height:30px;border-radius:7px;display:grid;place-items:center;font-size:12px;font-weight:600}
+  .slot.free{background:var(--free-dim);color:var(--free);border:1px solid rgba(47,191,113,.4)}
+  .slot.taken{background:var(--taken-dim);color:#f3a29d}
+  .slot.unknown{background:var(--unknown);color:var(--muted)}
+  .offline{color:var(--warn);font-size:13px;margin-top:10px}
+
+  .legend{display:flex;gap:16px;justify-content:center;color:var(--muted);font-size:13px;margin:18px 0 6px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .updated{text-align:center;color:var(--muted);font-size:12px}
+
+  /* ---------- แถบปุ่มด้านล่าง ---------- */
+  .cta{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+       background:linear-gradient(to top,var(--bg) 70%,rgba(14,17,22,0))}
+  .cta button{display:block;width:100%;max-width:560px;margin:0 auto;border:0;border-radius:16px;padding:17px;
+              font:600 18px 'IBM Plex Sans Thai',sans-serif;background:var(--accent);color:#fff;cursor:pointer}
+  .cta button:disabled{background:var(--panel-2);color:var(--muted);cursor:default}
+
+  .toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-80px);background:var(--warn);color:#1a1200;
+         padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;transition:transform .3s;z-index:5;
+         max-width:calc(100% - 32px)}
+  .toast.show{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">P</div>
+      <div><h1>Smart Parking</h1><small>ช่องจอดว่างแบบเรียลไทม์</small></div>
+    </div>
+    <div class="live" id="live"><i></i><span id="liveText">กำลังเชื่อมต่อ</span></div>
+  </header>
+
+  <section class="summary">
+    <div class="label">ช่องจอดว่างทั้งหมด</div>
+    <div class="big"><b id="totalFree">–</b><span id="totalOf">/ – ช่อง</span></div>
+    <div class="bar"><div id="totalBar" style="width:0"></div></div>
+  </section>
+
+  <div class="hint">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    กรุณาเลือกชั้นจอดเพื่อใช้ระบบนำทาง
+  </div>
+
+  <div class="floors" id="floors"></div>
+
+  <div class="legend">
+    <span><i style="background:var(--free)"></i>ว่าง</span>
+    <span><i style="background:var(--taken)"></i>มีรถ</span>
+    <span><i style="background:var(--unknown)"></i>ไม่มีข้อมูล</span>
+  </div>
+  <div class="updated" id="updated"></div>
+</div>
+
+<div class="cta"><button id="go" disabled>เลือกชั้นที่ต้องการจอด</button></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// =================== ตั้งค่า ===================
+const FIREBASE_URL = "https://smart-parking-e512d-default-rtdb.asia-southeast1.firebasedatabase.app";
+const FLOORS = [                         // ชั้นทั้งหมดในอาคาร (แสดงเสมอ แม้ ESP32 ยังไม่ส่งข้อมูล)
+  { id: "F1", name: "ชั้น 1", slots: 10 },
+  { id: "F2", name: "ชั้น 2", slots: 10 },
+  { id: "F3", name: "ชั้น 3", slots: 10 },
+  { id: "F4", name: "ชั้น 4", slots: 10 },
+  { id: "F5", name: "ชั้น 5", slots: 10 },
+];
+const NAV_PAGE = "nav.html";             // หน้าระบบนำทาง (ส่งชั้นที่เลือกไปเป็น ?floor=F1)
+const LOW_LEFT = 2;                      // เหลือว่างไม่เกินนี้ = "ใกล้เต็ม"
+const STALE_MS = 120000;                 // ESP32 ไม่ส่งข้อมูลเกิน 2 นาที = ออฟไลน์
+const POLL_MS  = 3000;
+// ===============================================
+
+const $ = id => document.getElementById(id);
+const DEMO = new URLSearchParams(location.search).has('demo');   // ?demo = ข้อมูลจำลอง
+let parking = {}, selected = null, online = false;
+
+// ---------- เวลาอ้างอิง ----------
+// ไม่ใช้นาฬิกามือถือตรง ๆ เพราะถ้านาฬิกามือถือเพี้ยน ESP32 ทุกตัวจะดูเหมือนออฟไลน์
+// ใช้เวลาของ ESP32 ตัวที่ส่งข้อมูลล่าสุด (เวลาจากเซิร์ฟเวอร์ Firebase) เป็นตัวเทียบแทน
+const ALL_DOWN_MS = 600000;              // ทุกตัวเงียบเกิน 10 นาที = ถือว่าระบบล่มทั้งหมด
+function refNow() {
+  let newest = 0;
+  for (const f of FLOORS)
+    for (const u of Object.values((parking[f.id] || {}).units || {})) newest = Math.max(newest, u.t || 0);
+  return newest && Date.now() - newest < ALL_DOWN_MS ? newest : Date.now();
+}
+
+// ---------- อ่านสถานะช่องจอด: 0 ว่าง / 1 มีรถ / null ไม่ทราบ (ออฟไลน์หรือเซนเซอร์เสีย) ----------
+function slotsOf(f, now) {
+  const d = parking[f.id] || {};
+  const arr = new Array(f.slots).fill(null);
+  for (const [k, v] of Object.entries(d.slots || {}))
+    if (+k < f.slots) arr[+k] = (v === 0 || v === 1) ? v : null;   // 2 = เซนเซอร์เสีย
+  for (const u of Object.values(d.units || {}))
+    if (!u.t || now - u.t > STALE_MS)
+      for (let i = u.from; i < u.from + u.count && i < f.slots; i++) arr[i] = null;
+  return arr;
+}
+
+function statusOf(free, known, total) {
+  if (known === 0)    return ['s-none', 'ไม่มีข้อมูล'];
+  if (free === 0)     return ['s-full', 'เต็ม'];
+  if (free <= LOW_LEFT) return ['s-low', 'ใกล้เต็ม'];
+  return ['s-free', 'ว่าง'];
+}
+
+// ---------- วาดหน้าจอ ----------
+function render() {
+  let sumFree = 0, sumTotal = 0, latest = 0;
+  const box = $('floors'), now = refNow();
+  box.innerHTML = '';
+
+  for (const f of FLOORS) {
+    const slots = slotsOf(f, now);
+    const free  = slots.filter(s => s === 0).length;
+    const known = slots.filter(s => s !== null).length;
+    const [cls, label] = statusOf(free, known, f.slots);
+    sumFree += free; sumTotal += f.slots;
+    for (const u of Object.values((parking[f.id] || {}).units || {})) latest = Math.max(latest, u.t || 0);
+
+    const canPick = free > 0;
+    if (selected === f.id && !canPick) { selected = null; toast(`${f.name} เต็มแล้ว กรุณาเลือกชั้นอื่น`); }
+
+    const el = document.createElement('div');
+    el.className = 'floor' + (selected === f.id ? ' selected' : '') + (canPick ? '' : ' disabled');
+    el.innerHTML = `
+      <div class="row">
+        <div class="fname">
+          <div class="badge">${f.id.replace(/\D/g, '')}</div>
+          <div><h2>${f.name}</h2><span class="status ${cls}">${label}</span></div>
+        </div>
+        <div class="count"><b>${free}</b><span> / ${f.slots}</span><small>ช่องว่าง</small></div>
+      </div>
+      <div class="slots">${slots.map((s, i) =>
+        `<div class="slot ${s === 0 ? 'free' : s === 1 ? 'taken' : 'unknown'}">${i + 1}</div>`).join('')}</div>
+      ${known > 0 && known < f.slots ? '<div class="offline">⚠️ เซนเซอร์บางส่วนไม่มีข้อมูล</div>' : ''}`;
+    el.onclick = () => {
+      if (!canPick) return toast(known ? `${f.name} เต็มแล้ว` : `${f.name} ยังไม่มีข้อมูล`);
+      selected = f.id; render();
+    };
+    box.appendChild(el);
+  }
+
+  $('totalFree').textContent = sumFree;
+  $('totalOf').textContent = `/ ${sumTotal} ช่อง`;
+  $('totalBar').style.width = (sumTotal ? sumFree / sumTotal * 100 : 0) + '%';
+  $('updated').textContent = latest ? 'อัปเดตล่าสุด ' + new Date(latest).toLocaleTimeString('th-TH') : '';
+
+  const go = $('go'), sel = FLOORS.find(f => f.id === selected);
+  go.disabled = !sel;
+  go.textContent = sel ? `เริ่มนำทางไป ${sel.name}  →` : 'เลือกชั้นที่ต้องการจอด';
+
+  $('live').classList.toggle('off', !online);
+  $('liveText').textContent = online ? (DEMO ? 'โหมดสาธิต' : 'ออนไลน์') : 'ขาดการเชื่อมต่อ';
+}
+
+$('go').onclick = () => {
+  if (selected) location.href = `${NAV_PAGE}?floor=${encodeURIComponent(selected)}`;
+};
+
+let toastTimer;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ---------- ดึงข้อมูล ----------
+async function load() {
+  if (DEMO) { demoTick(); online = true; render(); return; }
+  try {
+    const r = await fetch(FIREBASE_URL + '/parking.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    parking = (await r.json()) || {};
+    online = true;
+  } catch (e) { online = false; }
+  render();
+}
+
+// ข้อมูลจำลอง ใช้ดูหน้าตาโดยไม่ต้องมีเซนเซอร์ (เปิดด้วย ?demo)
+function demoTick() {
+  for (const f of FLOORS) {
+    const d = parking[f.id] || (parking[f.id] = {
+      slots: Array.from({ length: f.slots }, () => +(Math.random() < 0.6)), units: {} });
+    if (f.id === 'F3') d.slots = d.slots.map(() => 1);                       // ชั้น 3 เต็ม
+    else if (Math.random() < 0.5) { const i = Math.floor(Math.random() * f.slots); d.slots[i] ^= 1; }
+    d.units = { A: { t: Date.now(), from: 0, count: 5 },
+                B: { t: f.id === 'F5' ? 0 : Date.now(), from: 5, count: 5 } };      // ชั้น 5 ตัว B ออฟไลน์
+  }
+}
+
+render();
+load();
+setInterval(load, POLL_MS);
+</script>
+</body>
+</html>
