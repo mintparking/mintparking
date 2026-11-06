@@ -136,11 +136,11 @@
 // =================== ตั้งค่า ===================
 const FIREBASE_URL = "https://mintparking-52573-default-rtdb.asia-southeast1.firebasedatabase.app";
 const FLOORS = [                         // ชั้นทั้งหมดในอาคาร (แสดงเสมอ แม้ ESP32 ยังไม่ส่งข้อมูล)
-  { id: "F1", name: "ชั้น 1", slots: 10 },
-  { id: "F2", name: "ชั้น 2", slots: 10 },
-  { id: "F3", name: "ชั้น 3", slots: 10 },
-  { id: "F4", name: "ชั้น 4", slots: 10 },
-  { id: "F5", name: "ชั้น 5", slots: 10 },
+  { id: "F1", name: "ชั้น 4A", short: "4A", slots: 10 },
+  { id: "F2", name: "ชั้น 4B", short: "4B", slots: 10 },
+  { id: "F3", name: "ชั้น 5A", short: "5A", slots: 10 },
+  { id: "F4", name: "ชั้น 5B", short: "5B", slots: 10 },
+  { id: "F5", name: "ชั้น 6A", short: "6A", slots: 10 },
 ];
 const NAV_PAGE = "nav.html";             // หน้าระบบนำทาง (ส่งชั้นที่เลือกไปเป็น ?floor=F1)
 const LOW_LEFT = 2;                      // เหลือว่างไม่เกินนี้ = "ใกล้เต็ม"
@@ -204,7 +204,7 @@ function render() {
     el.innerHTML = `
       <div class="row">
         <div class="fname">
-          <div class="badge">${f.id.replace(/\D/g, '')}</div>
+          <div class="badge">${f.short || f.id}</div>
           <div><h2>${f.name}</h2><span class="status ${cls}">${label}</span></div>
         </div>
         <div class="count"><b>${free}</b><span> / ${f.slots}</span><small>ช่องว่าง</small></div>
@@ -259,10 +259,10 @@ function demoTick() {
   for (const f of FLOORS) {
     const d = parking[f.id] || (parking[f.id] = {
       slots: Array.from({ length: f.slots }, () => +(Math.random() < 0.6)), units: {} });
-    if (f.id === 'F3') d.slots = d.slots.map(() => 1);                       // ชั้น 3 เต็ม
+    if (f.id === 'F3') d.slots = d.slots.map(() => 1);                       // ชั้น 5A เต็ม
     else if (Math.random() < 0.5) { const i = Math.floor(Math.random() * f.slots); d.slots[i] ^= 1; }
     d.units = { A: { t: Date.now(), from: 0, count: 5 },
-                B: { t: f.id === 'F5' ? 0 : Date.now(), from: 5, count: 5 } };      // ชั้น 5 ตัว B ออฟไลน์
+                B: { t: f.id === 'F5' ? 0 : Date.now(), from: 5, count: 5 } };      // ชั้น 6A ตัว B ออฟไลน์
   }
 }
 
