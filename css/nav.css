@@ -1,0 +1,85 @@
+/* =====================================================================
+ * nav.css — หน้านำทาง (nav.html)
+ * ===================================================================== */
+html,body{height:100%}
+body{display:flex;flex-direction:column;transition:background .3s}
+body.turn{background:var(--turn)}
+body.arrived{background:var(--arrive)}
+
+/* ---------- แถบบน ---------- */
+.top{display:flex;align-items:center;gap:10px;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top))}
+.back{border:0;background:rgba(255,255,255,.08);color:var(--text);width:42px;height:42px;border-radius:12px;
+      display:grid;place-items:center;flex:none}
+.dest{flex:1;min-width:0}
+.dest small{display:block;color:var(--muted);font-size:13px}
+body.turn .dest small,body.arrived .dest small{color:rgba(255,255,255,.75)}
+.dest b{font-size:18px;font-weight:600}
+.free{flex:none;font-size:14px;font-weight:600;padding:6px 12px;border-radius:99px;background:var(--free-dim);color:var(--free)}
+.free.low{background:rgba(240,168,58,.18);color:var(--warn)}
+.free.full{background:var(--taken-dim);color:#f3a29d}
+.free.none{background:var(--unknown);color:var(--muted)}
+
+/* ---------- แจ้งเตือนชั้นเต็ม ---------- */
+.alert{margin:12px 16px 0;padding:12px 14px;border-radius:14px;background:rgba(240,168,58,.15);
+       border:1px solid rgba(240,168,58,.5);color:#ffd79a;font-size:15px;font-weight:500;display:none;
+       align-items:center;gap:10px;justify-content:space-between}
+.alert.show{display:flex}
+.alert button{border:0;border-radius:10px;padding:8px 12px;background:var(--warn);color:#1a1200;font-weight:600;font-size:14px;flex:none}
+
+/* ---------- คำสั่งหลัก ---------- */
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 20px}
+.code{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.5px;padding:3px 10px;border-radius:99px;
+      background:rgba(255,255,255,.14);color:#fff;margin-bottom:6px;visibility:hidden}
+.code.on{visibility:visible}
+.arrow{width:min(58vw,260px);height:min(58vw,260px)}
+.arrow svg{width:100%;height:100%}
+.msg{font-size:clamp(34px,11vw,58px);font-weight:700;line-height:1.15;margin-top:8px}
+.msg.long{font-size:clamp(28px,8.2vw,44px)}
+.detail{font-size:18px;color:rgba(255,255,255,.8);margin-top:6px;min-height:27px}
+.prev{margin-top:18px;font-size:14px;color:var(--muted);min-height:20px}
+body.turn .prev,body.arrived .prev{color:rgba(255,255,255,.7)}
+
+/* ---------- ผังช่องจอดเมื่อถึงชั้น ---------- */
+.slots{display:none;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;max-width:340px;margin-top:20px}
+body.arrived .slots{display:grid}
+.slot{height:34px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:600}
+.slot.f{background:var(--free);color:#05290f}
+.slot.t{background:rgba(255,255,255,.12);color:rgba(255,255,255,.45)}
+.slot.u{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3)}
+
+/* ---------- เส้นทางที่ผ่านมา ---------- */
+.steps{display:flex;flex-wrap:wrap;gap:4px 6px;justify-content:center;align-items:center;
+       padding:12px 16px calc(18px + env(safe-area-inset-bottom));font-size:13px;color:rgba(255,255,255,.5)}
+.steps b{font-weight:600;color:rgba(255,255,255,.85)}
+.steps b.now{color:#fff;background:rgba(255,255,255,.18);padding:1px 8px;border-radius:99px}
+.debug{color:rgba(255,255,255,.6);font-size:12px;white-space:pre-line;text-align:center;padding:0 16px 8px}
+
+/* ---------- หน้าเริ่ม ---------- */
+.start{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;
+       justify-content:center;text-align:center;padding:24px;z-index:5;gap:14px}
+.start.hide{display:none}
+.start h1{font-size:26px;font-weight:700}
+.start p{color:var(--muted);font-size:15px;max-width:320px;line-height:1.6}
+.start .big{border:0;border-radius:16px;padding:17px 40px;font-size:19px;font-weight:600;background:var(--accent);color:#fff;margin-top:8px}
+.start .link{border:0;background:none;color:var(--muted);font-size:15px;text-decoration:underline}
+.err{color:#f3a29d;font-size:14px;max-width:320px;min-height:20px}
+
+/* ---------- ปุ่มจำลอง (?sim) ---------- */
+.sim{display:none;flex-wrap:wrap;gap:6px;justify-content:center;padding:0 12px 10px}
+.sim.on{display:flex}
+.sim button{border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.25);color:#fff;border-radius:10px;padding:8px 12px;font-size:13px}
+.sim button.hold{background:#fff;color:#000}
+
+/* ---------- กล่องแจ้งเตือน flag ---------- */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+#box{background:#fff;color:#222;border-radius:16px;padding:24px;max-width:420px;width:100%}
+#box h2{margin:0 0 12px;font-size:21px}
+#box p,#box li{font-size:16px;line-height:1.5}
+#box ol{padding-left:22px;margin:8px 0}
+#box code{background:#eee;padding:2px 6px;border-radius:6px;word-break:break-all}
+.row{display:flex;gap:12px;margin-top:16px}
+.row button{flex:1;font-size:17px;padding:12px;border-radius:12px;border:0}
+.yes{background:#0a7d2c;color:#fff}
+.no{background:#ddd;color:#222}
+#steps2{display:none}
+#copied{color:#0a7d2c;font-weight:bold}

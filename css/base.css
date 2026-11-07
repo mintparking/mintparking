@@ -1,0 +1,17 @@
+/* =====================================================================
+ * base.css — สี ฟอนต์ และค่าพื้นฐานที่ใช้ร่วมกันทั้งสองหน้า
+ * ===================================================================== */
+:root{
+  --bg:#0e1116; --panel:#171b22; --panel-2:#1e232c; --line:#2a313c;
+  --text:#eef1f5; --muted:#8b95a5;
+  --free:#2fbf71; --free-dim:#1c4a33;
+  --taken:#e5534b; --taken-dim:#4d2523;
+  --warn:#f0a83a; --unknown:#3a414c;
+  --accent:#4c8dff;
+  --turn:#0f7a3f;        /* พื้นหลังหน้านำทางเมื่อถึงจุดเลี้ยว */
+  --arrive:#12305e;      /* พื้นหลังหน้านำทางเมื่อถึงชั้นจอด */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:'IBM Plex Sans Thai',sans-serif;color:var(--text);min-height:100vh}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
